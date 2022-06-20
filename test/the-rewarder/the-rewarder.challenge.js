@@ -79,7 +79,7 @@ describe('[Challenge] The rewarder', function () {
         // console.log("----> Deployed Attacker : ", block.timestamp)
 
         // Advance time 5 days so that depositors can get rewards
-        await ethers.provider.send("evm_increaseTime", [(5 * 24 * 60 * 60) - 2]); // 5 days
+        await ethers.provider.send("evm_increaseTime", [(5 * 24 * 60 * 60)]); // 5 days
         console.log("----> Time Travelled (5 days - 15 s) ")
 
         AttackRewarder.connect(attacker).attack(TOKENS_IN_LENDER_POOL, attacker.address)
@@ -96,6 +96,7 @@ describe('[Challenge] The rewarder', function () {
         expect(
             await this.rewarderPool.roundNumber()
         ).to.be.eq('3');
+        console.log("\n----[ Round Number passed ]----\n")
 
         // Users should get neglegible rewards this round
         for (let i = 0; i < users.length; i++) {
@@ -104,18 +105,22 @@ describe('[Challenge] The rewarder', function () {
             
             // The difference between current and previous rewards balance should be lower than 0.01 tokens
             let delta = rewards.sub(ethers.utils.parseEther('25'));
-            console.log("\t---> ",delta)
+            // console.log("\t---> ",delta)
             expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
+        console.log("\n----[ delta 1 passed ]----\n")
+
         
         // Rewards must have been issued to the attacker account
         expect(await this.rewardToken.totalSupply()).to.be.gt(ethers.utils.parseEther('100'));
+        console.log("\n----[ Total Rewards passed ]----\n")
         let rewards = await this.rewardToken.balanceOf(attacker.address);
-
+        
         // The amount of rewards earned should be really close to 100 tokens
         let delta = ethers.utils.parseEther('100').sub(rewards);
         expect(delta).to.be.lt(ethers.utils.parseUnits('1', 17));
-
+        console.log("\n----[ Delta 2 passed ]----\n")
+        
         // Attacker finishes with zero DVT tokens in balance
         expect(await this.liquidityToken.balanceOf(attacker.address)).to.eq('0');
     });
