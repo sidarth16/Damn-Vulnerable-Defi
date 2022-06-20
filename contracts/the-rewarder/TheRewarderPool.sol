@@ -5,6 +5,7 @@ pragma solidity ^0.8.0;
 import "./RewardToken.sol";
 import "../DamnValuableToken.sol";
 import "./AccountingToken.sol";
+import "hardhat/console.sol";
 
 /**
  * @title TheRewarderPool
@@ -47,6 +48,7 @@ contract TheRewarderPool {
      * @notice sender must have approved `amountToDeposit` liquidity tokens in advance
      */
     function deposit(uint256 amountToDeposit) external {
+        console.log("Inside Deposit" );
         require(amountToDeposit > 0, "Must deposit tokens");
         
         accToken.mint(msg.sender, amountToDeposit);
@@ -55,18 +57,22 @@ contract TheRewarderPool {
         require(
             liquidityToken.transferFrom(msg.sender, address(this), amountToDeposit)
         );
+        console.log("Deposited :",amountToDeposit );
     }
 
     function withdraw(uint256 amountToWithdraw) external {
         accToken.burn(msg.sender, amountToWithdraw);
         require(liquidityToken.transfer(msg.sender, amountToWithdraw));
+        console.log("Withdrawed :",amountToWithdraw );
     }
 
     function distributeRewards() public returns (uint256) {
+        console.log("Inside distribute rewards " );
         uint256 rewards = 0;
 
         if(isNewRewardsRound()) {
             _recordSnapshot();
+            console.log("New snapshot");
         }        
         
         uint256 totalDeposits = accToken.totalSupplyAt(lastSnapshotIdForRewards);
@@ -77,6 +83,10 @@ contract TheRewarderPool {
 
             if(rewards > 0 && !_hasRetrievedReward(msg.sender)) {
                 rewardToken.mint(msg.sender, rewards);
+                console.log("Rewards Minted : ",rewards);
+                console.log("\t User Deposited : ", amountDeposited);
+                console.log("\t Total Deposits : ", totalDeposits);
+                console.log("");
                 lastRewardTimestamps[msg.sender] = block.timestamp;
             }
         }

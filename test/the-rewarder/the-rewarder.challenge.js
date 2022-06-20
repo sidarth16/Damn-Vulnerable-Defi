@@ -79,11 +79,11 @@ describe('[Challenge] The rewarder', function () {
         // console.log("----> Deployed Attacker : ", block.timestamp)
 
         // Advance time 5 days so that depositors can get rewards
-        await ethers.provider.send("evm_increaseTime", [(5 * 24 * 60 * 60) - 15]); // 5 days
+        await ethers.provider.send("evm_increaseTime", [(5 * 24 * 60 * 60) - 2]); // 5 days
         console.log("----> Time Travelled (5 days - 15 s) ")
 
         AttackRewarder.connect(attacker).attack(TOKENS_IN_LENDER_POOL, attacker.address)
-
+        
 
 
 
@@ -104,6 +104,7 @@ describe('[Challenge] The rewarder', function () {
             
             // The difference between current and previous rewards balance should be lower than 0.01 tokens
             let delta = rewards.sub(ethers.utils.parseEther('25'));
+            console.log("\t---> ",delta)
             expect(delta).to.be.lt(ethers.utils.parseUnits('1', 16))
         }
         
