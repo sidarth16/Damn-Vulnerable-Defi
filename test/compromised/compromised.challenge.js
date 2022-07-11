@@ -80,6 +80,8 @@ describe('Compromised challenge', function () {
         await this.nftToken.connect(attacker).approve(this.exchange.address, id) 
         await this.exchange.connect(attacker).sellOne(id);
 
+        await this.oracle.connect(source1).postPrice("DVNFT", INITIAL_NFT_PRICE);
+        await this.oracle.connect(source2).postPrice("DVNFT", INITIAL_NFT_PRICE);
     });
 
     after(async function () {
